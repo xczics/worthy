@@ -112,7 +112,7 @@ verdict.embedding       # np.ndarray
 ## 查看运行状态 / 手动触发重训
 
 ```python
-w.status()          # 专用小模型版本、最近的"拿不准"比例、距下次自动重训还差多少数据……
+w.status()          # 专用小模型版本、最近的"拿不准"比例(还没训出专用小模型时为 None)、距下次自动重训还差多少数据……
 w.force_retrain()   # 不等自动触发条件,立即同步重训一次
 ```
 
@@ -169,7 +169,7 @@ Drop Worthy into your embedding step and every chunk gets a real verdict — wor
 
 - **Fixes retrieval quality at the source** — junk that never gets indexed can't crowd out the good stuff later
 - **Doesn't cost you anything extra to run** — it judges off the same embedding you were already computing for indexing. No second model call, no extra API bill
-- **Gets cheaper and sharper the more you use it** — day one, every call goes to your large model. But Worthy is quietly learning in the background, training a lightweight specialist on your actual corpus. Within a few hundred calls, that specialist is handling the obvious cases in milliseconds, and the large model only sees the genuinely ambiguous ones. The bigger your corpus, the less you pay and the better it gets
+- **Gets cheaper and sharper the more you use it** — day one, every call goes to your large model. But Worthy is quietly learning in the background, training a lightweight specialist on your actual corpus. Within about a thousand calls, that specialist is handling the obvious cases in milliseconds, and the large model only sees the genuinely ambiguous ones. The bigger your corpus, the less you pay and the better it gets
 
 ### How it works
 
@@ -257,7 +257,7 @@ See `examples/quickstart.py` for a fuller example, including a local Ollama setu
 ### Check status / trigger a retrain manually
 
 ```python
-w.status()          # specialist version, recent escalation rate, how much data until next auto-retrain...
+w.status()          # specialist version, recent escalation rate (None until a specialist exists), how much data until next auto-retrain...
 w.force_retrain()   # retrain immediately, without waiting for the automatic trigger
 ```
 
@@ -265,7 +265,7 @@ w.force_retrain()   # retrain immediately, without waiting for the automatic tri
 
 | Config | Purpose |
 |---|---|
-| `LLMConfig` | Generalist endpoint / key / model name, OpenAI-compatible, works with cloud platforms, vLLM, Ollama's compatible layer |
+| `LLMConfig` | General LLM endpoint / key / model name, OpenAI-compatible, works with cloud platforms, vLLM, Ollama's compatible layer |
 | `EmbeddingConfig` | Embedding endpoint config, supports `openai_compatible` and `ollama_native` |
 | `Thresholds` | The set of thresholds controlling "when is the specialist unsure" and "when to auto-retrain," all with sane defaults |
 | `criteria` | Your judgment standard, written in plain language — the main thing you actually configure |

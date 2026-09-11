@@ -151,12 +151,16 @@ class Worthy:
         return self.specialist.retrain()
 
     def status(self) -> dict:
+        has_specialist = self.specialist.has_model()
         return {
             "specialist_version": self.specialist.version,
-            "specialist_ready": self.specialist.has_model(),
+            "specialist_ready": has_specialist,
             "new_samples_since_last_train": self.store.count_new_samples_since_last_train(),
-            "recent_escalation_rate": self.store.get_recent_ambiguous_rate(
-                self.thresholds.ambiguous_rate_window
+            # 冷启动阶段(还没有专用小模型)没有路由决策可言,"拿不准"这个概念不适用,
+            # 用 None 而非 0.0 表示,避免被读成"实测拿不准比例为 0"
+            "recent_escalation_rate": (
+                self.store.get_recent_ambiguous_rate(self.thresholds.ambiguous_rate_window)
+                if has_specialist else None
             ),
             "current_escalation_trigger_threshold": self.specialist.current_ambiguous_threshold(),
             "retrain_count": self.store.get_retrain_count(),

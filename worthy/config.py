@@ -48,6 +48,9 @@ class Thresholds:
     uncertain_high: float = 0.65
 
     # 触发重训的样本数量条件
+    # min_new_samples_for_retrain 只是"模糊率超阈值"这条提前重训路径的下限;
+    # 冷启动阶段(还没有专用小模型)没有模糊率信号可言,所以第一次训练不受它影响,
+    # 实际会一直等到 max_new_samples_for_retrain 才触发,这是预期行为
     min_new_samples_for_retrain: int = 500   # 少于这个数,不训练(防止小样本过拟合)
     max_new_samples_for_retrain: int = 1000  # 达到这个数,不管模糊率多少,强制重训一次
 
