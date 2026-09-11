@@ -11,9 +11,14 @@ from worthy import Worthy, LLMConfig, EmbeddingConfig, Thresholds
 
 
 def fake_embed(text: str) -> np.ndarray:
+    # Noise is deliberately large relative to the class gap so the two
+    # classes are *not* perfectly linearly separable — real embeddings
+    # rarely are either, and a perfectly separable toy dataset sends
+    # LogisticRegression's optimizer to unbounded weights (numeric
+    # overflow warnings) without actually testing anything useful.
     is_ref = ("[" in text and "]" in text and len(text) < 50)
     base = np.array([1.0, 0.0] if not is_ref else [0.0, 1.0], dtype=np.float32)
-    noise = np.random.RandomState(abs(hash(text)) % (2**32)).normal(0, 0.1, size=2).astype(np.float32)
+    noise = np.random.RandomState(abs(hash(text)) % (2**32)).normal(0, 0.4, size=2).astype(np.float32)
     vec = base + noise
     pad = np.random.RandomState(abs(hash(text)) % (2**32) + 1).normal(0, 0.05, size=14).astype(np.float32)
     return np.concatenate([vec, pad])
@@ -39,7 +44,7 @@ class FakeChatResp:
         self.choices = [FakeChatChoice(content)]
 
 
-def run_smoke_test():
+def test_smoke(tmp_path):
     with patch("worthy.embedding_client.OpenAI") as MockEmbedOpenAI, \
          patch("worthy.llm_client.OpenAI") as MockLLMOpenAI:
 
@@ -64,8 +69,8 @@ def run_smoke_test():
                 min_new_samples_for_retrain=40,
                 max_new_samples_for_retrain=80,
             ),
-            db_path="/home/claude/worthy/tests/_smoke.db",
-            model_dir="/home/claude/worthy/tests/_smoke_models",
+            db_path=str(tmp_path / "_smoke.db"),
+            model_dir=str(tmp_path / "_smoke_models"),
         )
 
         long_texts = [f"这是第{i}段完整的叙述性正文,内容描述了实验过程与结论分析。" * 2 for i in range(60)]
@@ -95,7 +100,3 @@ def run_smoke_test():
         assert "specialist" in post_sources, "重训后应有请求命中专用小模型"
 
         print("\n✅ 冒烟测试通过")
-
-
-if __name__ == "__main__":
-    run_smoke_test()

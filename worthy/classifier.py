@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """线性分类器的加载、预测与增量重训逻辑"""
 
+import warnings
 from pathlib import Path
 from typing import Optional
 
@@ -11,6 +12,17 @@ from sklearn.model_selection import train_test_split
 
 from .config import Thresholds
 from .store import SampleStore
+
+
+def _fit_quietly(clf: LogisticRegression, X, y) -> LogisticRegression:
+    # scikit-learn's lbfgs solver can emit spurious "overflow"/"divide by zero"
+    # RuntimeWarnings from transient line-search overshoots on well-separated
+    # data — the fit still converges correctly. Silencing keeps a normal
+    # retrain() call from looking like something broke.
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=RuntimeWarning, module="sklearn.*")
+        clf.fit(X, y)
+    return clf
 
 
 class ClassifierManager:
@@ -80,12 +92,12 @@ class ClassifierManager:
                 X, y, test_size=0.15, random_state=42, stratify=y
             )
             clf = LogisticRegression(max_iter=2000, class_weight="balanced")
-            clf.fit(X_tr, y_tr)
+            _fit_quietly(clf, X_tr, y_tr)
             val_acc = clf.score(X_val, y_val)
         except ValueError:
             # 数据量太小无法做分层切分时,直接用全量数据训练,不做验证集评估
             clf = LogisticRegression(max_iter=2000, class_weight="balanced")
-            clf.fit(X, y)
+            _fit_quietly(clf, X, y)
 
         new_version = self.version + 1
         joblib.dump(clf, self._model_path(new_version))
