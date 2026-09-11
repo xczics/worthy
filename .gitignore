@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Worthy runtime data (SQLite store + trained specialist models)
+*.db
+worthy_models/
+*_models/
+
+.DS_Store
