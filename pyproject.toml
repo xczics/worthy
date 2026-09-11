@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "worthy"
-version = "0.1.0"
+version = "0.0.1"
 description = "Worthy (掌眼): decide what's worth indexing into your RAG knowledge base, via dynamic LLM + specialist routing that trains itself as you use it"
 readme = "README.md"
 requires-python = ">=3.9"
