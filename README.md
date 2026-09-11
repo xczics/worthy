@@ -62,8 +62,19 @@ verdict.source                 # 这次是谁做的裁定: "rule" / "specialist"
 ## 安装
 
 ```bash
-pip install -e .
+pip install worthy
 ```
+
+想跟着 main 分支实时同步、不等正式版发布,可以直接从 GitHub 装:
+
+```bash
+pip install "git+https://github.com/xczics/worthy.git@main"
+
+# 想同步到最新 push,重新装一次即可
+pip install --upgrade --force-reinstall "git+https://github.com/xczics/worthy.git@main"
+```
+
+本地开发/改代码见「贡献」一节。
 
 ## 快速上手
 
@@ -119,6 +130,15 @@ w.force_retrain()   # 不等自动触发条件,立即同步重训一次
 ## 数据存到哪了
 
 标注样本(文本、embedding、标签、来源)和历次训练出的模型版本,分别存在你指定的 `db_path`(SQLite文件)和 `model_dir`(模型文件目录)里,换语料库时指向新路径即可从零积累,不会互相污染。
+
+## 贡献
+
+```bash
+git clone https://github.com/xczics/worthy.git
+cd worthy
+pip install -e ".[dev]"
+pytest tests/
+```
 
 ---
 
@@ -186,8 +206,19 @@ verdict.source                 # who made this call: "rule" / "specialist" / "ge
 ### Install
 
 ```bash
-pip install -e .
+pip install worthy
 ```
+
+Want to track `main` in real time instead of waiting for tagged releases? Install straight from GitHub:
+
+```bash
+pip install "git+https://github.com/xczics/worthy.git@main"
+
+# to pick up whatever's newest on main, just reinstall
+pip install --upgrade --force-reinstall "git+https://github.com/xczics/worthy.git@main"
+```
+
+See Contributing below for a local dev setup.
 
 ### Quickstart
 
@@ -244,3 +275,12 @@ See the comments in `worthy/config.py` for full field details.
 ### Where your data lives
 
 Labeled samples (text, embedding, label, source) and every trained model version are stored under the `db_path` (a SQLite file) and `model_dir` (a folder of model files) you provide. Point to a new path when you switch corpora, and it starts fresh without mixing with old data.
+
+### Contributing
+
+```bash
+git clone https://github.com/xczics/worthy.git
+cd worthy
+pip install -e ".[dev]"
+pytest tests/
+```
