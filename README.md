@@ -56,7 +56,7 @@
 ```python
 verdict.embedding              # 这段文本的 embedding 向量,可直接拿去入库,不用重复计算
 verdict.should_index           # 值不值得入库
-verdict.source                 # 这次是谁做的裁定: "rule" / "specialist"(专用小模型) / "generalist"(大模型)
+verdict.source                 # 这次是谁做的裁定: "rule" / "specialist"(专用小模型) / "general_llm"(大模型)
 ```
 
 ## 安装
@@ -184,7 +184,7 @@ Specialist scores it (skipped if no specialist has been trained yet)
    │
    ├─ Confident ──► verdict returned directly
    │
-   └─ Unsure ──► escalated to the generalist, result logged for training
+   └─ Unsure ──► escalated to the general LLM, result logged for training
                       │
                       ▼
               (in background) enough new data + escalation rate over threshold
@@ -193,14 +193,14 @@ Specialist scores it (skipped if no specialist has been trained yet)
               specialist retrains automatically, without blocking the current request
 ```
 
-In other words: **dynamic routing between a large model and a specialist you grow yourself.** The large model (the generalist) has good judgment but is slow, costs money per call, and occasionally hands back output that doesn't parse cleanly. The specialist is a lightweight classifier trained on embeddings you were already computing — millisecond inference, runs locally for free, and its output is just a probability, so there's nothing to fail to parse. Worthy routes to whichever one fits: the specialist takes the obvious majority of cases, the generalist only gets pulled in for genuine edge cases, and the specialist keeps retraining itself on what it learns from those escalations — no manual labeling, ever.
+In other words: **dynamic routing between a large model and a specialist you grow yourself.** The large model (the general LLM) has good judgment but is slow, costs money per call, and occasionally hands back output that doesn't parse cleanly. The specialist is a lightweight classifier trained on embeddings you were already computing — millisecond inference, runs locally for free, and its output is just a probability, so there's nothing to fail to parse. Worthy routes to whichever one fits: the specialist takes the obvious majority of cases, the general LLM only gets pulled in for genuine edge cases, and the specialist keeps retraining itself on what it learns from those escalations — no manual labeling, ever.
 
 Every call returns:
 
 ```python
 verdict.embedding              # the embedding for this text — reuse it for indexing, no need to recompute
 verdict.should_index           # worth indexing or not
-verdict.source                 # who made this call: "rule" / "specialist" / "generalist"
+verdict.source                 # who made this call: "rule" / "specialist" / "general_llm"
 ```
 
 ### Install

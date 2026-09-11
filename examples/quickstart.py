@@ -95,6 +95,6 @@ if __name__ == "__main__":
     verdict = w.judge(text)
 
     print("值不值得入库:", verdict.should_index)
-    print("这次是谁裁定的:", verdict.source)   # rule / specialist / generalist
+    print("这次是谁裁定的:", verdict.source)   # rule / specialist / general_llm
     print("embedding 维度:", verdict.embedding.shape)
     print("当前状态:", w.status())

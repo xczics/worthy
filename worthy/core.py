@@ -20,8 +20,8 @@ class Verdict:
     text: str
     embedding: np.ndarray
     should_index: bool                # 最终裁定:值不值得入库
-    source: str                       # "rule" / "specialist"(专用小模型) / "generalist"(大模型)
-    generalist_score: Optional[int] = None          # 若由大模型裁定,原始 0-10 分数
+    source: str                       # "rule" / "specialist"(专用小模型) / "general_llm"(大模型)
+    general_llm_score: Optional[int] = None          # 若由大模型裁定,原始 0-10 分数
     specialist_confidence: Optional[float] = None   # 若由专用小模型裁定,置信概率
     escalated: bool = False           # 专用小模型是否因拿不准而上报给大模型复核
     specialist_version: int = 0       # 当前专用小模型的版本号
@@ -63,7 +63,7 @@ class Worthy:
         self.criteria = ClassificationCriteria(**crit_kwargs)
 
         self.embedder = EmbeddingClient(embedding_config)
-        self.generalist = LLMScorer(llm_config, self.criteria)
+        self.general_llm = LLMScorer(llm_config, self.criteria)
 
         self.store = SampleStore(db_path)
         self.specialist = ClassifierManager(self.thresholds, self.store, model_dir)
@@ -90,7 +90,7 @@ class Worthy:
 
         # 2. 冷启动:还没有专用小模型时,全部交给大模型裁定
         if not self.specialist.has_model():
-            return self._judge_via_generalist(text, embedding, escalated=False)
+            return self._judge_via_general_llm(text, embedding, escalated=False)
 
         # 3. 专用小模型打分
         prob = self.specialist.predict_proba(embedding)
@@ -107,11 +107,11 @@ class Worthy:
             )
 
         # 4. 专用小模型拿不准,升级(escalate)给大模型复核,结果追加进训练库
-        return self._judge_via_generalist(text, embedding, escalated=True)
+        return self._judge_via_general_llm(text, embedding, escalated=True)
 
-    def _judge_via_generalist(self, text: str, embedding: np.ndarray,
-                               escalated: bool) -> Verdict:
-        raw_score = self.generalist.score(text)
+    def _judge_via_general_llm(self, text: str, embedding: np.ndarray,
+                                escalated: bool) -> Verdict:
+        raw_score = self.general_llm.score(text)
         label = 1 if raw_score >= self.thresholds.score_binarize_threshold else 0
         self.store.add_sample(
             text, embedding, label, source="llm",
@@ -121,8 +121,8 @@ class Worthy:
         return Verdict(
             text=text, embedding=embedding,
             should_index=bool(label),
-            source="generalist",
-            generalist_score=raw_score,
+            source="general_llm",
+            general_llm_score=raw_score,
             escalated=escalated,
             specialist_version=self.specialist.version,
         )
